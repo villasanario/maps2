@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Location with Blue Dot</title>
+  <style>
+    #map {
+      height: 50vh;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB0e_-EFJUTHB8OZcPC_xvzktLGsnMPA5g&callback=initMap"
+        async defer></script>
+
+<script>
+  let map, userMarker, accuracyCircle;
+  let hasCentered = false; // 👉 Prevents constant recentering
+
+  function initMap() {
+    const initialPos = { lat: 0, lng: 0 };
+
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: initialPos,
+      zoom: 17,
+      mapTypeId: "roadmap"
+    });
+
+    const blueDotIcon = {
+      path: google.maps.SymbolPath.CIRCLE,
+      fillColor: '#4285F4',
+      fillOpacity: 1,
+      scale: 8,
+      strokeColor: 'white',
+      strokeWeight: 2
+    };
+
+    userMarker = new google.maps.Marker({
+      position: initialPos,
+      map: map,
+      icon: blueDotIcon,
+      title: "You are here"
+    });
+
+    accuracyCircle = new google.maps.Circle({
+      strokeColor: '#4285F4',
+      strokeOpacity: 0.3,
+      strokeWeight: 1,
+      fillColor: '#4285F4',
+      fillOpacity: 0.1,
+      map: map,
+      center: initialPos,
+      radius: 50
+    });
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(updatePosition, showError, {
+        enableHighAccuracy: true,
+        maximumAge: 0
+      });
+    } else {
+      alert("Geolocation is not supported by your browser.");
+    }
+  }
+
+  function updatePosition(position) {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    const accuracy = position.coords.accuracy;
+
+    const userPos = { lat, lng };
+
+    userMarker.setPosition(userPos);
+    accuracyCircle.setCenter(userPos);
+    accuracyCircle.setRadius(accuracy);
+
+    if (!hasCentered) {
+      map.setCenter(userPos);
+      hasCentered = true; // 👈 Center only once
+    }
+  }
+
+  function showError(error) {
+    alert("Geolocation failed: " + error.message);
+  }
+</script>
+
+</body>
+</html>
